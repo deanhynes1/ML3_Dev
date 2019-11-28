@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split # Import train_test_split function
-from sklearn.svm import SVC
+from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error,r2_score
 import numpy as np
@@ -24,7 +24,7 @@ from sklearn.preprocessing import MinMaxScaler
 ###################data prepared#################################################################
 ##test
 
-def ML_Regression():
+def ML3_Regression():
 
     X_train, X_test, y_train, y_test,targets,features,dataset = prepareData()
 
@@ -46,7 +46,7 @@ def ML_Regression():
     IQR_OUTOUT = (dataset <(Q1 - 1.5*IQR)) | (dataset > (Q3+1.5*IQR))
     print(IQR_OUTOUT.shape)
     '''
-
+## test Markdown
     ######################################################################
     #print("-----------------Stats of the data------------")
     #print(dataset.iloc[:,2:].describe())
@@ -55,19 +55,17 @@ def ML_Regression():
     #print("----------------------------------------------")
 
     linearRegressionRFE(features, targets,X_train, X_test, y_train, y_test)
-    ## lets look at the data
-
     #try RFE squared https://www.datacamp.com/community/tutorials/feature-selection-python
-
     #####################################create Linear regression classifier################################
     linearRegression(features,targets,X_train, X_test, y_train, y_test)
-
     #create a Gradient Boosting Regressor####################################################################################
     gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test)
      #create a kNeighborRegression Regressor####################################################################################
     kNeighborRegression(features,targets,X_train, X_test, y_train, y_test)
-
+     #create a PLSregression Regressor#################################################
     PLSregression(features,targets,X_train, X_test, y_train, y_test)
+    #create a PLSregression Regressor#################################################
+    SVM(features,targets,X_train, X_test, y_train, y_test)
 
 def plotModel(expected2, predicted2):
     plt.figure(figsize=(4, 3))
@@ -214,9 +212,6 @@ def gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test
 
     rfe2 = RFE(reg2 ,6)
 
-
-
-
     FIT2 = rfe2.fit(X_train, y_train)
     print('gradientBoostingRegression run::')
     print('Num Features:%s'%(FIT2.n_features_))
@@ -245,13 +240,6 @@ def gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test
     #print("SVM RMS: %r " % np.sqrt(np.mean((predicted4 - expected4) ** 2)))
 def kNeighborRegression(features,targets,X_train, X_test, y_train, y_test):
     reg3 = KNeighborsRegressor(n_neighbors = 4)
-    #rfe3= RFE(reg3 ,4)
-    #FIT3 = rfe3.fit(X_train, y_train)
-    #print('Num Features:%s'%(FIT3.n_features_))
-    #print("Features to pic:%s"%(FIT3.support_))
-    #train it
-    #rfe = RFE(reg3,9)
-    #X_rfe = rfe.fit_transform(X_train, y_train)
 
     reg3.fit(X_train , y_train)
 
@@ -278,8 +266,26 @@ def PLSregression(features,targets,X_train, X_test, y_train, y_test):
     #X_rfe = rfe.fit_transform(X_train, y_train)
 
     #reg4.fit(X_rfe , y_train)
-    #features1 = preprocessing.scale(features.astype(float))
-    #targets1 =  preprocessing.scale(targets.astype(float))
+    reg4.fit(X_train,y_train)
+
+    #predicted4 = reg4.predict(X_test)
+    #expected4 = y_test
+
+    y_cv = cross_val_predict(reg4,X_test,y_test,cv=10)
+    r_score = r2_score(y_test,y_cv)
+    mse = mean_squared_error(y_test,y_cv)
+    kfold2 = KFold(n_splits=10, random_state=100)
+    results_kfold3 = cross_val_score(reg4, features, targets, cv=kfold2)
+    print('PLSregression run::')
+    print("r2 score for PLS Regressor",r_score)
+    print("Accuracy for 10 fold validation on PLS Regressor: %.2f%%" % (results_kfold3.mean()*100.0))
+    print("mean Squared Error score for PLS Regressor",mse)
+    #print("Accuracy for 10 fold validation for SVM: %.2f%%" % (results_kfold4.mean()*100.0))
+    print("--------------------------------------------------------------" )
+##https://medium.com/pursuitnotes/support-vector-regression-in-6-steps-with-python-c4569acd062d
+def SVM(features,targets,X_train, X_test, y_train, y_test):
+    #reg4 = SVR(kernel='linear')
+    reg4 = SVR(gamma = 'auto',kernel='rbf')
 
 
     reg4.fit(X_train,y_train)
@@ -292,26 +298,19 @@ def PLSregression(features,targets,X_train, X_test, y_train, y_test):
     mse = mean_squared_error(y_test,y_cv)
     kfold2 = KFold(n_splits=10, random_state=100)
     results_kfold3 = cross_val_score(reg4, features, targets, cv=kfold2)
-    print('PLSregression run::')
-    print("r2 score for PLS Regressor",r_score)
-    print("Accuracy for 10 fold validation on PLS Regressor: %.2f%%" % (results_kfold3.mean()*100.0))
-    print("mean Squared Error score for PLS Regressor",mse)
+    print('SVM regression run::')
+    print("r2 score for SVM Regressor",r_score)
+    print("Accuracy for 10 fold validation on SVM Regressor: %.2f%%" % (results_kfold3.mean()*100.0))
+    print("mean Squared Error score for SVM Regressor",mse)
     #print("Accuracy for 10 fold validation for SVM: %.2f%%" % (results_kfold4.mean()*100.0))
     print("--------------------------------------------------------------" )
 
-
-
-
-def main():#Added main for tidy up
+def main():
     '''
     function def::
     Calls the regression algorithms.
-
-
-
     '''
-    ML_Regression()
-
+    ML3_Regression()
 
 if __name__=="__main__":#execute only if run as a script
     main()
