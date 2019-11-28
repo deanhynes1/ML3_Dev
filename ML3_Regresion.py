@@ -13,45 +13,45 @@ from sklearn.feature_selection import RFE
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectKBest
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.preprocessing import StandardScaler 
+from sklearn.preprocessing import StandardScaler
 from sklearn import preprocessing
 from sklearn.svm import SVR
-from sklearn.linear_model import LogisticRegression 
+from sklearn.linear_model import LogisticRegression
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import MinMaxScaler
 ##https://medium.com/@powersteh/an-introduction-to-applied-machine-learning-with-multiple-linear-regression-and-python-925c1d97a02b
 ###################data prepared#################################################################
-
+##test
 
 def ML_Regression():
-    
+
     X_train, X_test, y_train, y_test,targets,features,dataset = prepareData()
-    
-    
+
+
     '''
     ####remove outliers https://towardsdatascience.com/ways-to-detect-and-remove-the-outliers-404d16608dba
     z = np.abs(stats.zscore(dataset))
-    
+
     print("Z greater than 3")
     print(np.where(z>3))
     print(z[151][3]) # z over 3 example
-    
+
     print("------------------------------------------")
     Q1 = dataset.quantile(0.25)
     Q3 = dataset.quantile(0.75)
     IQR = Q3-Q1
     print("IRQ FOR EACH COLUMN")
     print(IQR)
-    IQR_OUTOUT = (dataset <(Q1 - 1.5*IQR)) | (dataset > (Q3+1.5*IQR)) 
+    IQR_OUTOUT = (dataset <(Q1 - 1.5*IQR)) | (dataset > (Q3+1.5*IQR))
     print(IQR_OUTOUT.shape)
     '''
-    
+
     ######################################################################
     #print("-----------------Stats of the data------------")
     #print(dataset.iloc[:,2:].describe())
     #stats = (dataset.iloc[:,2:].describe())
-    
+
     #print("----------------------------------------------")
 
     linearRegressionRFE(features, targets,X_train, X_test, y_train, y_test)
@@ -61,12 +61,12 @@ def ML_Regression():
 
     #####################################create Linear regression classifier################################
     linearRegression(features,targets,X_train, X_test, y_train, y_test)
- 
+
     #create a Gradient Boosting Regressor####################################################################################
     gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test)
      #create a kNeighborRegression Regressor####################################################################################
     kNeighborRegression(features,targets,X_train, X_test, y_train, y_test)
-    
+
     PLSregression(features,targets,X_train, X_test, y_train, y_test)
 
 def plotModel(expected2, predicted2):
@@ -79,7 +79,7 @@ def plotModel(expected2, predicted2):
     plt.tight_layout()
     plt.show()
 
- 
+
 
 def prepareData():
     filename = "steel.csv"
@@ -91,25 +91,25 @@ def prepareData():
     print(dataset.shape)##data reduce in size
 
  # Create the Scaler object##############################################
-   
+
     #scaler = preprocessing.StandardScaler()
     scaler = MinMaxScaler(feature_range=(0, 1))
-    
+
     # Fit your data on the scaler object
     dataset = scaler.fit_transform(dataset)
     dataset  = pd.DataFrame(dataset)
- 
+
     #dataset = pd.DataFrame(preprocessing.scale(dataset))
-    
-    
-    
+
+
+
     dataset.columns =['normalising_temperature','tempering_temperature', 'sample_id', 'percent_silicon', 'percent_chromium', 'manufacture_year', 'percent_copper', 'percent_nickel','percent_sulphur','percent_carbon','percent_manganese','tensile_strength']
     #Features ranking:[       4                       5                     6            1                  3                     7                  1                1                   1                1                   2]
-    #Features to pic:[            True                True                 True               True        False                False                False              False            False             True                 True 
+    #Features to pic:[            True                True                 True               True        False                False                False              False            False             True                 True
     ## Split the data into features and target
     #do we need sample, manufacture_year,normalising_temperature',
-    
-    
+
+
     #thisYear = 2019
     #dataset['manufacture_year'] = thisYear - dataset['manufacture_year']
     #print(dataset[ 'sample'])
@@ -121,16 +121,16 @@ def prepareData():
     '''
     targets = dataset["tensile_strength"]# id the target
     #features = dataset.drop("tensile_strength", axis=1)   # Drop the variety name since this is our target
-    features = dataset.drop(['tensile_strength','percent_chromium','manufacture_year','percent_copper','percent_nickel','percent_sulphur'], axis=1) 
+    features = dataset.drop(['tensile_strength','percent_chromium','manufacture_year','percent_copper','percent_nickel','percent_sulphur'], axis=1)
     #'percent_nickel','percent_sulphur','percent_carbon','percent_manganese
-    #features = dataset.drop('tensile_strength', axis=1) 
-    
+    #features = dataset.drop('tensile_strength', axis=1)
 
-    
+
+
     X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=1) # 80% training and 20% test
     #sc_X = StandardScaler(features)
    # sc_Y = StandardScaler(targets)
-    '''  
+    '''
     print('test data')
     print(X_train.shape)
     print(X_test.shape)
@@ -138,8 +138,8 @@ def prepareData():
     print(y_train.shape)
     print(y_test.shape)
     '''
-    
-    
+
+
     return X_train, X_test, y_train, y_test,targets,features,dataset
 
 def linearRegression(features, targets,X_train, X_test, y_train, y_test):
@@ -151,13 +151,13 @@ def linearRegression(features, targets,X_train, X_test, y_train, y_test):
     FIT = rfe.fit(X_train, y_train)
    # print(X_train.columns)
     print(X_train.columns)
-    
-    
-    
+
+
+
     print('Num Features:%s'%(FIT.n_features_))
     print("Features to pic:%s"%(FIT.support_))
-    
- 
+
+
     #Train classifier
     regression1.fit(X_train, y_train)
     predicted = regression1.predict(X_test)
@@ -175,13 +175,13 @@ def linearRegression(features, targets,X_train, X_test, y_train, y_test):
     print("RMS for Linear regressor: %r " % np.sqrt(np.mean((predicted - expected) ** 2)))
     print("--------------------------------------------------------------" )
     print("LR score", regression1.score(X_test,y_test))
-    
+
 def linearRegressionRFE(features,targets,X_train, X_test, y_train, y_test):
     #no of features
-    nof_list=np.arange(1,13)            
+    nof_list=np.arange(1,13)
     high_score=0
     #Variable to store the optimum features
-    nof=0           
+    nof=0
     score_list =[]
     for n in range(len(nof_list)):
         X_train, X_test, y_train, y_test = train_test_split(features,targets,test_size = 0.3, random_state = 0)
@@ -195,13 +195,13 @@ def linearRegressionRFE(features,targets,X_train, X_test, y_train, y_test):
         if(score>high_score):
             high_score = score
             nof = nof_list[n]
-            
+
     print("LR with RFE run::")
     kfold2 = KFold(n_splits=10, random_state=100)
     results_kfold2 = cross_val_score(model, X_test_rfe,y_test, cv=kfold2)
-    
 
-    
+
+
     print("Accuracy for 10 fold validation linearRegressionRFE: %.2f%%" % (results_kfold2.mean()*100.0))
     #print("--------------------------------------------------------------" )
     print("Optimum number of features: %d" %nof)
@@ -209,30 +209,30 @@ def linearRegressionRFE(features,targets,X_train, X_test, y_train, y_test):
     print("--------------------------------------------------------------" )
 
 def gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test):
-    
+
     reg2 = GradientBoostingRegressor()
- 
+
     rfe2 = RFE(reg2 ,6)
-    
-    
-    
-    
+
+
+
+
     FIT2 = rfe2.fit(X_train, y_train)
     print('gradientBoostingRegression run::')
     print('Num Features:%s'%(FIT2.n_features_))
     print("Features to pic:%s"%(FIT2.support_))
     #train it
    # print(X_train.columns)
-    
+
     #features = features.drop(['sample','percent_manganese','percent_silicon'], axis=1)
     reg2.fit(X_train, y_train)
-    
+
     predicted2 = reg2.predict(X_test)
     expected2 = y_test
-    
+
     kfold2 = KFold(n_splits=10, random_state=100)
     results_kfold2 = cross_val_score(reg2, features, targets, cv=kfold2)
-    
+
     print("Accuracy for 10 fold validation Gradient Boosting Regressor: %.2f%%" % (results_kfold2.mean()*100.0))
     #print("--------------------------------------------------------------" )
 
@@ -252,38 +252,38 @@ def kNeighborRegression(features,targets,X_train, X_test, y_train, y_test):
     #train it
     #rfe = RFE(reg3,9)
     #X_rfe = rfe.fit_transform(X_train, y_train)
-    
+
     reg3.fit(X_train , y_train)
-    
+
     predicted3 = reg3.predict(X_test)
     expected3 = y_test
     pointPredictions = reg3.predict(X_train)
     #print(pointPredictions)
     kfold2 = KFold(n_splits=10, random_state=100)
     results_kfold3 = cross_val_score(reg3, features, targets, cv=kfold2)
-    
-    
+
+
     print('kNeighborRegression run::')
     print("Accuracy for 10 fold validation on KNN: %.2f%%" % (results_kfold3.mean()*100.0))
 
     print("RMS for KNN: %r " % np.sqrt(np.mean((predicted3 - expected3) ** 2)))
-    
+
     print("--------------------------------------------------------------" )
- 
-    
-def PLSregression(features,targets,X_train, X_test, y_train, y_test):   
+
+
+def PLSregression(features,targets,X_train, X_test, y_train, y_test):
     reg4 = PLSRegression(n_components=5)
     #train it
     #rfe = RFE(reg4,9)
     #X_rfe = rfe.fit_transform(X_train, y_train)
-    
+
     #reg4.fit(X_rfe , y_train)
     #features1 = preprocessing.scale(features.astype(float))
     #targets1 =  preprocessing.scale(targets.astype(float))
-    
+
 
     reg4.fit(X_train,y_train)
-    
+
     #predicted4 = reg4.predict(X_test)
     #expected4 = y_test
     #results_kfold4 = cross_val_score(reg4, features1, targets1, cv=kfold2)
@@ -298,22 +298,20 @@ def PLSregression(features,targets,X_train, X_test, y_train, y_test):
     print("mean Squared Error score for PLS Regressor",mse)
     #print("Accuracy for 10 fold validation for SVM: %.2f%%" % (results_kfold4.mean()*100.0))
     print("--------------------------------------------------------------" )
-    
-    
-    
-    
+
+
+
+
 def main():#Added main for tidy up
     '''
     function def::
     Calls the regression algorithms.
-    
+
 
 
     '''
     ML_Regression()
-    
+
 
 if __name__=="__main__":#execute only if run as a script
     main()
-
- 
