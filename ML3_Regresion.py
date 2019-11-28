@@ -103,7 +103,7 @@ def prepareData():
     
     
     
-    dataset.columns =['normalising_temperature','tempering_temperature', 'sample', 'percent_silicon', 'percent_chromium', 'manufacture_year', 'percent_copper', 'percent_nickel','percent_sulphur','percent_carbon','percent_manganese','tensile_strength']
+    dataset.columns =['normalising_temperature','tempering_temperature', 'sample_id', 'percent_silicon', 'percent_chromium', 'manufacture_year', 'percent_copper', 'percent_nickel','percent_sulphur','percent_carbon','percent_manganese','tensile_strength']
     #Features ranking:[       4                       5                     6            1                  3                     7                  1                1                   1                1                   2]
     #Features to pic:[            True                True                 True               True        False                False                False              False            False             True                 True 
     ## Split the data into features and target
@@ -149,7 +149,8 @@ def linearRegression(features, targets,X_train, X_test, y_train, y_test):
 
     rfe = RFE(regression1 ,6)
     FIT = rfe.fit(X_train, y_train)
-    #print(X_train.columns)
+   # print(X_train.columns)
+    print(X_train.columns)
     
     
     
