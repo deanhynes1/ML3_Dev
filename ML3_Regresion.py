@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import classification_report #TO OUTPUT REPORT
 from sklearn.model_selection import KFold,cross_val_score,StratifiedKFold
+from sklearn import metrics
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectKBest
@@ -20,9 +21,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import MinMaxScaler
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+from sklearn.metrics import mean_squared_error
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+##https://pythonprogramming.net/training-testing-machine-learning-tutorial/
 ##https://medium.com/@powersteh/an-introduction-to-applied-machine-learning-with-multiple-linear-regression-and-python-925c1d97a02b
 ###################data prepared#################################################################
 ##test
+##https://realpython.com/linear-regression-in-python/
 
 def ML3_Regression():
 
@@ -54,39 +67,42 @@ def ML3_Regression():
 
     #print("----------------------------------------------")
 
-    linearRegressionRFE(features, targets,X_train, X_test, y_train, y_test)
+    ##linearRegressionRFE(features, targets,X_train, X_test, y_train, y_test)
     #try RFE squared https://www.datacamp.com/community/tutorials/feature-selection-python
     #####################################create Linear regression classifier################################
     linearRegression(features,targets,X_train, X_test, y_train, y_test)
     #create a Gradient Boosting Regressor####################################################################################
-    gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test)
+    ##gradientBoostingRegression(features,targets,X_train, X_test, y_train, y_test)
      #create a kNeighborRegression Regressor####################################################################################
-    kNeighborRegression(features,targets,X_train, X_test, y_train, y_test)
+    ###kNeighborRegression(features,targets,X_train, X_test, y_train, y_test)
      #create a PLSregression Regressor#################################################
-    PLSregression(features,targets,X_train, X_test, y_train, y_test)
+    #PLSregression(features,targets,X_train, X_test, y_train, y_test)
     #create a PLSregression Regressor#################################################
     SVM(features,targets,X_train, X_test, y_train, y_test)
+    linearRegression2(features, targets,X_train, X_test, y_train, y_test)
 
-def plotModel(expected2, predicted2):
-    plt.figure(figsize=(4, 3))
-    plt.scatter(expected2, predicted2)
-    plt.plot([0, 500], [0, 500], '--k')
-    plt.axis('tight')
-    plt.xlabel('tensile_strength')
-    plt.ylabel('Predicted tensile_strength')
-    plt.tight_layout()
+def plotModel(target, input):
+    #plt.figure(figsize=(4, 3))
+    plt.scatter(target, input,color='green')
+    plt.plot([-1, 2], [-1, 2], '--k')
+    #plt.axis('tight')
+    #plt.xlabel(input)
+    #plt.ylabel(target)
+    plt.grid(True)
     plt.show()
 
 
-
+#https://towardsdatascience.com/overfitting-vs-underfitting-a-complete-example-d05dd7e19765
 def prepareData():
     filename = "steel.csv"
     dataset = pd.read_csv(filename,sep='\s+')# tab seperated
-    print('Shape of input data::')
-    print(dataset.shape)
+
+    #print('Shape of input data::')
+    #print(dataset.shape)
     dataset = dataset[(np.abs(st.zscore(dataset)<3)).all(axis=1)] # get rig of out liers z greater than 3 = higher than average
-    print('Shape of input data after outliers removed::')
-    print(dataset.shape)##data reduce in size
+    #print('Shape of input data after outliers removed::')
+    #print(dataset.shape)##data reduce in size
+
 
  # Create the Scaler object##############################################
 
@@ -106,6 +122,23 @@ def prepareData():
     #Features to pic:[            True                True                 True               True        False                False                False              False            False             True                 True
     ## Split the data into features and target
     #do we need sample, manufacture_year,normalising_temperature',
+    ##check for outliers of tensile.s 3 standard deviaitons from the mean.
+    #https://medium.com/@powersteh/an-introduction-to-applied-machine-learning-with-multiple-linear-regression-and-python-925c1d97a02b
+
+
+
+    '''
+    print("tensile_strength.mean()")
+    print(dataset.tensile_strength.mean())
+    print("tensile_strength.std()")
+    print(dataset.tensile_strength.std())
+    l = dataset.tensile_strength.mean() + (3*dataset.tensile_strength.std())
+    plt.figure(figsize=(10, 5))
+    plt.title('Density Histogram of tensile_strength')
+    plt.hist(dataset.tensile_strength, bins=75,density=True,color='orange')
+    plt.axvline(l, color='grey', linestyle='dashed', linewidth=2)
+    plt.show()
+    '''
 
 
     #thisYear = 2019
@@ -119,15 +152,34 @@ def prepareData():
     '''
     targets = dataset["tensile_strength"]# id the target
     #features = dataset.drop("tensile_strength", axis=1)   # Drop the variety name since this is our target
+    #features = dataset.drop(['tensile_strength','percent_manganese','tempering_temperature','percent_sulphur'], axis=1)
     features = dataset.drop(['tensile_strength','percent_chromium','manufacture_year','percent_copper','percent_nickel','percent_sulphur'], axis=1)
+
+
     #'percent_nickel','percent_sulphur','percent_carbon','percent_manganese
     #features = dataset.drop('tensile_strength', axis=1)
 
 
 
-    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=1) # 80% training and 20% test
+    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.3, random_state=1) # 70% training and 20% test
     #sc_X = StandardScaler(features)
    # sc_Y = StandardScaler(targets)
+   #check mising values in dataset.
+    '''
+    print(dataset.info())##shows non null so no mising values and all floats.
+    '''
+    '''
+    corr = features.corr(method='pearson')
+
+    #plotting the correlation coefficients on a seasborn heatmap matrix
+    fig, ax = plt.subplots(figsize=(6,5))
+    sns.heatmap(corr, annot=True, xticklabels=corr.columns,
+           yticklabels=corr.columns, ax=ax, linewidths=.5,
+           vmin = -1, vmax=1, center=0)
+
+    plt.title('Correlation HeatMap')
+    plt.show()
+    '''
     '''
     print('test data')
     print(X_train.shape)
@@ -136,19 +188,23 @@ def prepareData():
     print(y_train.shape)
     print(y_test.shape)
     '''
+    #sns.pairplot(dataset.loc[:,dataset.dtypes == 'float64'])
+    #dataset.columns =['normalising_temperature','tempering_temperature', 'sample_id', 'percent_silicon', 'percent_chromium', 'manufacture_year', 'percent_copper', 'percent_nickel','percent_sulphur','percent_carbon','percent_manganese','tensile_strength']
+   #                            l                          nl                   wl           wl               wl                   wl                 wl                 wl               nl              wl                nl
+          #'percent_chromium','manufacture_year','percent_copper','percent_nickel','percent_sulphur'], axis=1)
 
-
+    #plotModel(targets, dataset['percent_manganese'])
     return X_train, X_test, y_train, y_test,targets,features,dataset
 
 def linearRegression(features, targets,X_train, X_test, y_train, y_test):
-    regression1 = LinearRegression()# multi v. linear regressor
+    regression1 = LinearRegression(n_jobs=-1)# multi v. linear regressor
     ##SELECT TOP 3 FEATUES TO USE.
     #print(features['manufacture_year'])
 
     rfe = RFE(regression1 ,6)
     FIT = rfe.fit(X_train, y_train)
    # print(X_train.columns)
-    print(X_train.columns)
+    #print(X_train.columns)
 
 
 
@@ -171,9 +227,37 @@ def linearRegression(features, targets,X_train, X_test, y_train, y_test):
     ##https://www.theanalysisfactor.com/assessing-the-fit-of-regression-models/
     ##https://medium.com/@powersteh/an-introduction-to-applied-machine-learning-with-multiple-linear-regression-and-python-925c1d97a02b
     print("RMS for Linear regressor: %r " % np.sqrt(np.mean((predicted - expected) ** 2)))
-    print("--------------------------------------------------------------" )
     print("LR score", regression1.score(X_test,y_test))
+    print("--------------------------------------------------------------" )
+def linearRegression2(features, targets,X_train, X_test, y_train, y_test):
+    regression1 = LinearRegression(n_jobs=-1)# multi v. linear regressor
+    ##SELECT TOP 3 FEATUES TO USE.
+    #print(features['manufacture_year'])
+    steps = [
+        ('scalar', StandardScaler()),
+        ('poly', PolynomialFeatures(degree=2)),
+        ('model', LinearRegression())
+    ]
 
+    pipeline = Pipeline(steps)
+
+    pipeline.fit(X_train, y_train)
+
+    print('Training score2: {}'.format(pipeline.score(X_train, y_train)))
+    print('Test score2: {}'.format(pipeline.score(X_test, y_test)))
+    #now do 10 fold validation#########################################################################
+    kfold1 = KFold(n_splits=10, random_state=100)
+    #https://www.pluralsight.com/guides/validating-machine-learning-models-scikit-learn##################################
+    results_kfold1 = cross_val_score(pipeline,X_test,y_test, cv=kfold1)
+    print('linearRegression2 run::')
+    print("Accuracy for 10 fold validation for Linear Regressor2 P: %.2f%%" % (results_kfold1.mean()*100.0))
+    ##print("--------------------------------------------------------------" )
+    #plot the input.
+    ##https://www.theanalysisfactor.com/assessing-the-fit-of-regression-models/
+    ##https://medium.com/@powersteh/an-introduction-to-applied-machine-learning-with-multiple-linear-regression-and-python-925c1d97a02b
+    #print("RMS for Linear regressor: %r " % np.sqrt(np.mean((predicted - expected) ** 2)))
+    #print("LRP score", pipeline.score(X_test,y_test))
+    print("--------------------------------------------------------------" )
 def linearRegressionRFE(features,targets,X_train, X_test, y_train, y_test):
     #no of features
     nof_list=np.arange(1,13)
@@ -283,9 +367,13 @@ def PLSregression(features,targets,X_train, X_test, y_train, y_test):
     #print("Accuracy for 10 fold validation for SVM: %.2f%%" % (results_kfold4.mean()*100.0))
     print("--------------------------------------------------------------" )
 ##https://medium.com/pursuitnotes/support-vector-regression-in-6-steps-with-python-c4569acd062d
+#https://www.datacamp.com/community/tutorials/svm-classification-scikit-learn-python
 def SVM(features,targets,X_train, X_test, y_train, y_test):
     #reg4 = SVR(kernel='linear')
     reg4 = SVR(gamma = 'auto',kernel='rbf')
+    #reg4 = SVR(gamma = 'auto',kernel='linear')
+    #reg4 = SVR(gamma = 2,kernel='poly')
+    #reg4 = SVR(gamma = 10,kernel='rbf')
 
 
     reg4.fit(X_train,y_train)
@@ -293,6 +381,8 @@ def SVM(features,targets,X_train, X_test, y_train, y_test):
     #predicted4 = reg4.predict(X_test)
     #expected4 = y_test
     #results_kfold4 = cross_val_score(reg4, features1, targets1, cv=kfold2)
+    y_pred = reg4.predict(X_test)
+
     y_cv = cross_val_predict(reg4,X_test,y_test,cv=10)
     r_score = r2_score(y_test,y_cv)
     mse = mean_squared_error(y_test,y_cv)
@@ -303,7 +393,9 @@ def SVM(features,targets,X_train, X_test, y_train, y_test):
     print("Accuracy for 10 fold validation on SVM Regressor: %.2f%%" % (results_kfold3.mean()*100.0))
     print("mean Squared Error score for SVM Regressor",mse)
     #print("Accuracy for 10 fold validation for SVM: %.2f%%" % (results_kfold4.mean()*100.0))
-    print("--------------------------------------------------------------" )
+    print("LR score", reg4.score(X_test,y_test))
+    #print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+    print("--------------------------------------------------------------")
 
 def main():
     '''
